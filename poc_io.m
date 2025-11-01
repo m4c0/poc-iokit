@@ -45,13 +45,28 @@ int main() {
 
   chk(IOHIDDeviceOpen(dev, kIOHIDOptionsTypeNone));
 
+  NSLog(@"Report Desc: %@", IOHIDDeviceGetProperty(dev, CFSTR(kIOHIDReportDescriptorKey)));
+
+        CFDataRef cfprop = (CFDataRef)IOHIDDeviceGetProperty(dev, CFSTR(kIOHIDReportDescriptorKey));
+        printf("DESCRIPTOR:\n  ");
+        uint8_t pbuf[1024];
+        if( cfprop != NULL) {
+            long len = CFDataGetLength(cfprop);
+            CFDataGetBytes( cfprop, CFRangeMake(0,len), pbuf);
+            for( int i=0; i< len; i++) {
+                printf("%02x ", pbuf[i]);
+                printf( (i % 16 == 15) ? "\n  " : " ");
+            }
+            printf("\n  (%ld bytes)\n", len);
+        }
+
   unsigned char buf[2048];
   IOHIDDeviceRegisterInputReportCallback(dev, buf, 2048, callback, nil);
 
   unsigned char d1[64] = { 1, 0x81, 0, 0x82 };
   //chk(IOHIDDeviceSetReport(dev, kIOHIDReportTypeOutput, 1, d1, sizeof(d1)));
 
-  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 4, false);
+  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
 
   //unsigned char d2[2048] = { 0 };
   //CFIndex d2s = sizeof(d2);
@@ -61,6 +76,6 @@ int main() {
   //  NSLog(@"%02x", d2[i]);
   //}
 
-  //chk(IOHIDDeviceClose(dev, 0));
+  chk(IOHIDDeviceClose(dev, 0));
 }
 
